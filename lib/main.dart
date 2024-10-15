@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
@@ -35,8 +37,17 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            backgroundColor: Colors.blueGrey,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+          ),
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'HTTP + DIO'),
     );
   }
 }
@@ -60,19 +71,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
   bool isLoading = false;
   bool hasError = false;
   late Quote quote;
@@ -93,20 +91,18 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       final response =
           await http.get(Uri.parse('https://dummyjson.com/quotes/random'));
-      print(response.body);
-      //var data = json.decode(response.body);
-      //quotes = data.map<Quote>((quote) => Quote.fromJson(quote)).toList();
-      //print(quotes);
-
+      if (kDebugMode) {
+        print(response.body);
+      }
       var data = json.decode(response.body);
       quote = Quote.fromJson(data);
-      text = quote.author + '\n' + quote.quote;
     } catch (ex) {
       setState(() {
         hasError = true;
       });
     }
     setState(() {
+      text = '${quote.quote}\n - ${quote.author}';
       isLoading = false;
     });
   }
@@ -129,39 +125,35 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: isLoading
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : Center(
-              // Center is a layout widget. It takes a single child and positions it
-              // in the middle of the parent.
-              child: Column(
-                // Column is also a layout widget. It takes a list of children and
-                // arranges them vertically. By default, it sizes itself to fit its
-                // children horizontally, and tries to be as tall as its parent.
-                //
-                // Column has various properties to control how it sizes itself and
-                // how it positions its children. Here we use mainAxisAlignment to
-                // center the children vertically; the main axis here is the vertical
-                // axis because Columns are vertical (the cross axis would be
-                // horizontal).
-                //
-                // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-                // action in the IDE, or press "p" in the console), to see the
-                // wireframe for each widget.
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(text),
-                  ),
-                  TextButton(onPressed: getHttpData, child: Text('HTTP')),
-                  TextButton(onPressed: () {}, child: Text('DIO')),
-                  TextButton(onPressed: () {}, child: Text('ERROR')),
-                ],
-              ),
-            ), // This trailing comma makes auto-formatting nicer for build methods.
+      body: Center(
+        // Center is a layout widget. It takes a single child and positions it
+        // in the middle of the parent.
+        child: Column(
+          // Column is also a layout widget. It takes a list of children and
+          // arranges them vertically. By default, it sizes itself to fit its
+          // children horizontally, and tries to be as tall as its parent.
+          //
+          // Column has various properties to control how it sizes itself and
+          // how it positions its children. Here we use mainAxisAlignment to
+          // center the children vertically; the main axis here is the vertical
+          // axis because Columns are vertical (the cross axis would be
+          // horizontal).
+          //
+          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+          // action in the IDE, or press "p" in the console), to see the
+          // wireframe for each widget.
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+                padding: const EdgeInsets.all(16.0),
+                child:
+                    isLoading ? const CircularProgressIndicator() : Text(text)),
+            TextButton(onPressed: isLoading ? () {} : getHttpData, child: const Text('HTTP')),
+            TextButton(onPressed: () {}, child: const Text('DIO')),
+            TextButton(onPressed: () {}, child: const Text('ERROR')),
+          ],
+        ),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
