@@ -77,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String text = 'Получи данные';
 
-  Dio _dio = Dio();
+  final Dio _dio = Dio();
 
   @override
   void initState() {
