@@ -122,7 +122,9 @@ class _MyHomePageState extends State<MyHomePage> {
     } on DioException catch (ex) {
       setState(() {
         hasError = true;
-        print(ex.response);
+        if (kDebugMode) {
+          print(ex.response);
+        }
       });
     }
     setState(() {
