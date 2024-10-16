@@ -5,7 +5,8 @@ class Quote{
 
   Quote({this.id, required this.quote, required this.author});
 
-  Quote.fromJson(dynamic json) : this(
+  Quote.fromJson(Map<String, dynamic> json) : this(
+  //Quote.fromJson(dynamic json) : this(
     id: json['id'],
     quote: json['quote'],
     author: json['author'],

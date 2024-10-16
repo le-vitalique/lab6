@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -73,7 +72,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool isLoading = false;
   bool hasError = false;
+
   late Quote quote;
+
   String text = 'Получи данные';
 
   Dio _dio = Dio();
@@ -81,21 +82,43 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    getHttpData();
+    getDataHttp();
   }
 
-  getHttpData() async {
+  getDataHttp() async {
     setState(() {
       isLoading = true;
     });
     try {
       final response =
           await http.get(Uri.parse('https://dummyjson.com/quotes/random'));
+
       if (kDebugMode) {
         print(response.body);
       }
       var data = json.decode(response.body);
-      quote = Quote.fromJson(data);
+      quote = Quote.fromJson(data as Map<String, dynamic>);
+    } catch (ex) {
+      setState(() {
+        hasError = true;
+      });
+    }
+    setState(() {
+      text = '${quote.quote}\n - ${quote.author}';
+      isLoading = false;
+    });
+  }
+
+  getDataDio() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await _dio.get('https://dummyjson.com/quotes/random');
+      if (kDebugMode) {
+        print(response.data);
+      }
+      quote = response.data;
     } catch (ex) {
       setState(() {
         hasError = true;
@@ -153,9 +176,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     ? const CircularProgressIndicator(color: Colors.blueGrey)
                     : Text(text)),
             TextButton(
-                onPressed: isLoading ? () {} : getHttpData,
+                onPressed: isLoading ? () {} : getDataHttp,
                 child: const Text('HTTP')),
-            TextButton(onPressed: () {}, child: const Text('DIO')),
+            TextButton(
+                onPressed: isLoading ? () {} : getDataDio,
+                child: const Text('DIO')),
             TextButton(onPressed: () {}, child: const Text('ERROR')),
           ],
         ),
