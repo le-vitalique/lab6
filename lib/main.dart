@@ -118,10 +118,11 @@ class _MyHomePageState extends State<MyHomePage> {
       if (kDebugMode) {
         print(response.data);
       }
-      quote = response.data;
-    } catch (ex) {
+      quote = Quote.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (ex) {
       setState(() {
         hasError = true;
+        print(ex.response);
       });
     }
     setState(() {
