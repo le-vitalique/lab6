@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
@@ -101,10 +100,6 @@ class _MyHomePageState extends State<MyHomePage> {
           .get(Uri.parse('https://dummyjson.com/quotes/random'))
           .timeout(const Duration(seconds: 5));
 
-      if (kDebugMode) {
-        print(response.body);
-      }
-
       // Если запрос выполнен успешно
       if (response.statusCode == 200) {
         var data = json.decode(response.body);
@@ -136,9 +131,6 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       // Запрос
       final response = await _dio.get('/quotes/random');
-      if (kDebugMode) {
-        print(response.data);
-      }
 
       // Если запрос выполнен успешно
       if (response.statusCode == 200) {
@@ -151,9 +143,6 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     } on DioException catch (ex) {
-      if (kDebugMode) {
-        print(ex.response);
-      }
       setState(() {
         text = ex.message.toString();
         isLoading = false;
