@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -71,7 +72,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool isLoading = false;
-  bool hasError = false;
 
   late Quote quote;
 
@@ -82,6 +82,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+
+    // Опции Dio
+    _dio.options.baseUrl = 'https://dummyjson.com';
+    _dio.options.connectTimeout = const Duration(seconds: 5);
+    _dio.options.receiveTimeout = const Duration(seconds: 3);
+
     getDataHttp();
   }
 
@@ -90,23 +96,37 @@ class _MyHomePageState extends State<MyHomePage> {
       isLoading = true;
     });
     try {
-      final response =
-          await http.get(Uri.parse('https://dummyjson.com/quotes/random'));
+      // Запрос
+      final response = await http
+          .get(Uri.parse('https://dummyjson.com/quotes/random'))
+          .timeout(const Duration(seconds: 5));
 
       if (kDebugMode) {
         print(response.body);
       }
-      var data = json.decode(response.body);
-      quote = Quote.fromJson(data as Map<String, dynamic>);
+
+      // Если запрос выполнен успешно
+      if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+        quote = Quote.fromJson(data as Map<String, dynamic>);
+
+        // Отобразим цитату
+        setState(() {
+          text = '${quote.quote}\n - ${quote.author}';
+          isLoading = false;
+        });
+      }
+    } on TimeoutException {
+      setState(() {
+        text = 'HTTP Timeout';
+        isLoading = false;
+      });
     } catch (ex) {
       setState(() {
-        hasError = true;
+        text = 'HTTP Exception';
+        isLoading = false;
       });
     }
-    setState(() {
-      text = '${quote.quote}\n - ${quote.author}';
-      isLoading = false;
-    });
   }
 
   getDataDio() async {
@@ -114,23 +134,54 @@ class _MyHomePageState extends State<MyHomePage> {
       isLoading = true;
     });
     try {
-      final response = await _dio.get('https://dummyjson.com/quotes/random');
+      // Запрос
+      final response = await _dio.get('/quotes/random');
       if (kDebugMode) {
         print(response.data);
       }
-      quote = Quote.fromJson(response.data as Map<String, dynamic>);
+
+      // Если запрос выполнен успешно
+      if (response.statusCode == 200) {
+        quote = Quote.fromJson(response.data as Map<String, dynamic>);
+
+        // Отобразим цитату
+        setState(() {
+          text = '${quote.quote}\n - ${quote.author}';
+          isLoading = false;
+        });
+      }
     } on DioException catch (ex) {
+      if (kDebugMode) {
+        print(ex.response);
+      }
       setState(() {
-        hasError = true;
-        if (kDebugMode) {
-          print(ex.response);
+        if (ex.type == DioExceptionType.connectionTimeout ||
+            ex.type == DioExceptionType.receiveTimeout) {
+          text = 'DIO Timeout';
+        } else {
+          text = 'DIO Exception';
         }
+        isLoading = false;
       });
     }
+  }
+
+  getError() async {
     setState(() {
-      text = '${quote.quote}\n - ${quote.author}';
-      isLoading = false;
+      isLoading = true;
     });
+    try {
+      // Запрос
+      final response = await _dio.get('/http/404/Not_found!');
+    } on DioException catch (ex) {
+      if (kDebugMode) {
+        print(ex.message);
+      }
+      setState(() {
+        text = ex.message.toString();
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -184,7 +235,9 @@ class _MyHomePageState extends State<MyHomePage> {
             TextButton(
                 onPressed: isLoading ? () {} : getDataDio,
                 child: const Text('DIO')),
-            TextButton(onPressed: () {}, child: const Text('ERROR')),
+            TextButton(
+                onPressed: isLoading ? () {} : getError,
+                child: const Text('ERROR')),
           ],
         ),
       ), // This trailing comma makes auto-formatting nicer for build methods.
