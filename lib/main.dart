@@ -71,22 +71,17 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool isLoading = false;
-
   late Quote quote;
-
   String text = 'Получи данные';
-
   final Dio _dio = Dio();
 
   @override
   void initState() {
     super.initState();
-
     // Опции Dio
     _dio.options.baseUrl = 'https://dummyjson.com';
     _dio.options.connectTimeout = const Duration(seconds: 5);
     _dio.options.receiveTimeout = const Duration(seconds: 3);
-
     getDataHttp();
   }
 
@@ -99,18 +94,20 @@ class _MyHomePageState extends State<MyHomePage> {
       final response = await http
           .get(Uri.parse('https://dummyjson.com/quotes/random'))
           .timeout(const Duration(seconds: 5));
-
       // Если запрос выполнен успешно
       if (response.statusCode == 200) {
         var data = json.decode(response.body);
         quote = Quote.fromJson(data as Map<String, dynamic>);
-
         // Отобразим цитату
-        setState(() {
-          text = '${quote.quote}\n - ${quote.author}';
-          isLoading = false;
-        });
+        text = '${quote.quote}\n - ${quote.author}';
+      } else {
+        // Отобразим ошибку
+        text =
+            '${response.reasonPhrase.toString()} [${response.statusCode.toString()}]';
       }
+      setState(() {
+        isLoading = false;
+      });
     } on TimeoutException {
       setState(() {
         text = 'HTTP Timeout';
@@ -131,11 +128,9 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       // Запрос
       final response = await _dio.get('/quotes/random');
-
       // Если запрос выполнен успешно
       if (response.statusCode == 200) {
         quote = Quote.fromJson(response.data as Map<String, dynamic>);
-
         // Отобразим цитату
         setState(() {
           text = '${quote.quote}\n - ${quote.author}';
@@ -144,6 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     } on DioException catch (ex) {
       setState(() {
+        // Отобразим ошибку
         text = ex.message.toString();
         isLoading = false;
       });
@@ -159,6 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
       await _dio.get('/http/404/Not_found!');
     } on DioException catch (ex) {
       setState(() {
+        // Отобразим ошибку
         text = ex.message.toString();
         isLoading = false;
       });
