@@ -155,12 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
         print(ex.response);
       }
       setState(() {
-        if (ex.type == DioExceptionType.connectionTimeout ||
-            ex.type == DioExceptionType.receiveTimeout) {
-          text = 'DIO Timeout';
-        } else {
-          text = 'DIO Exception';
-        }
+        text = ex.message.toString();
         isLoading = false;
       });
     }
@@ -172,11 +167,8 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     try {
       // Запрос
-      final response = await _dio.get('/http/404/Not_found!');
+      await _dio.get('/http/404/Not_found!');
     } on DioException catch (ex) {
-      if (kDebugMode) {
-        print(ex.message);
-      }
       setState(() {
         text = ex.message.toString();
         isLoading = false;
@@ -229,15 +221,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.blueGrey)
                     : Text(text)),
-            TextButton(
-                onPressed: isLoading ? () {} : getDataHttp,
-                child: const Text('HTTP')),
-            TextButton(
-                onPressed: isLoading ? () {} : getDataDio,
-                child: const Text('DIO')),
-            TextButton(
-                onPressed: isLoading ? () {} : getError,
-                child: const Text('ERROR')),
+            TextButton(onPressed: getDataHttp, child: const Text('HTTP')),
+            TextButton(onPressed: getDataDio, child: const Text('DIO')),
+            TextButton(onPressed: getError, child: const Text('ERROR')),
           ],
         ),
       ), // This trailing comma makes auto-formatting nicer for build methods.
