@@ -155,7 +155,12 @@ class _MyHomePageState extends State<MyHomePage> {
     } on DioException catch (ex) {
       setState(() {
         // Отобразим ошибку
-        text = ex.message.toString();
+        try {
+          text =
+              '${ex.response!.data['message']} [${ex.response!.data['status']}]';
+        } catch (e) {
+          text = ex.message.toString();
+        }
         isLoading = false;
       });
     }
